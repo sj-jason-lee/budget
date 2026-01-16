@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 interface TransactionInput {
   date: string;
@@ -10,6 +11,11 @@ interface TransactionInput {
 }
 
 export async function POST(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { transactions } = body as { transactions: TransactionInput[] };
 
@@ -27,6 +33,7 @@ export async function POST(request: NextRequest) {
       subDescription: t.subDescription,
       amount: t.amount,
       category: t.category,
+      userId: session.user.id,
     })),
   });
 

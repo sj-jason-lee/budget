@@ -9,6 +9,16 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  password     String
+  name         String?
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
 model Transaction {
   id             String   @id @default(cuid())
   date           DateTime
@@ -17,11 +27,17 @@ model Transaction {
   amount         Decimal  @db.Decimal(10, 2)
   category       String?
   createdAt      DateTime @default(now())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Budget {
   id        String   @id @default(cuid())
-  category  String   @unique
+  category  String
   limit     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
 }

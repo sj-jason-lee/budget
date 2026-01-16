@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const month = searchParams.get("month") || (new Date().getMonth() + 1).toString();
   const year = searchParams.get("year") || new Date().getFullYear().toString();
@@ -11,6 +17,7 @@ export async function GET(request: NextRequest) {
 
   const transactions = await prisma.transaction.findMany({
     where: {
+      userId: session.user.id,
       date: {
         gte: startDate,
         lte: endDate,
@@ -18,7 +25,9 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const budgets = await prisma.budget.findMany();
+  const budgets = await prisma.budget.findMany({
+    where: { userId: session.user.id },
+  });
 
   // Calculate spending by category
   const spendingByCategory: Record<string, number> = {};

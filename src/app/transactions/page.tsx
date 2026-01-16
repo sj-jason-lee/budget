@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import TransactionList from "../components/TransactionList";
 import CSVUpload, { PendingTransaction } from "../components/CSVUpload";
 import CategorySelect from "../components/CategorySelect";
+import AddTransactionModal from "../components/AddTransactionModal";
 
 interface Transaction {
   id: string;
@@ -20,6 +21,7 @@ export default function TransactionsPage() {
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -126,6 +128,24 @@ export default function TransactionsPage() {
         </h2>
         <CSVUpload onParse={handleParse} />
       </div>
+      
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-4">
+          Add Single Transaction
+        </h2>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
+        >
+          Add Transaction
+        </button>
+      </div>
+
+      <AddTransactionModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchTransactions}
+      />
 
       {pendingTransactions.length > 0 && (
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6">
